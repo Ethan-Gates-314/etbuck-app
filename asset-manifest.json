@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/etbuck-app/static/css/main.de543593.css",
+    "main.js": "/etbuck-app/static/js/main.5aadfd83.js",
+    "static/js/453.1ee9e4d7.chunk.js": "/etbuck-app/static/js/453.1ee9e4d7.chunk.js",
+    "index.html": "/etbuck-app/index.html",
+    "main.de543593.css.map": "/etbuck-app/static/css/main.de543593.css.map",
+    "main.5aadfd83.js.map": "/etbuck-app/static/js/main.5aadfd83.js.map",
+    "453.1ee9e4d7.chunk.js.map": "/etbuck-app/static/js/453.1ee9e4d7.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.de543593.css",
+    "static/js/main.5aadfd83.js"
+  ]
+}
