@@ -61,8 +61,8 @@ function App() {
   // Credit card data (removed Ethan)
   const creditCards = [
     { name: 'Jacob', balance: 400, cardNumber: '4532 1234 5678 9012' },
-    { name: 'Bella', balance: 0, cardNumber: '4532 2345 6789 0123' },
-    { name: 'Melanie', balance: 0, cardNumber: '4532 3456 7890 1234' }
+    { name: 'Bella', balance: 100, cardNumber: '4532 2345 6789 0123' },
+    { name: 'Melanie', balance: 50, cardNumber: '4532 3456 7890 1234' }
   ];
   
   // Real-time VTI-based conversion rate
@@ -73,7 +73,7 @@ function App() {
     setIsLoading(true);
     try {
       // Use Financial Modeling Prep API as primary due to CORS issues with Yahoo Finance and Polygon.io 401
-      const apiKey = process.env.REACT_APP_API_KEY; // Access API key from environment variables
+      const apiKey = process.env.REACT_APP_API_KEY || "45dce6a8aa49cafd332393286f49e99f"; // Access API key from environment variables
       if (!apiKey) {
         console.error('Financial Modeling Prep API key not found in environment variables.');
         return;
@@ -294,7 +294,7 @@ function App() {
                   </div>
                 </div>
                 <div className="conversion-rate">
-                  <span className="rate-amount">1 ETBUCK = ${etbuckToDollar.toFixed(4)}</span>
+                  <span className="rate-amount">100 ETBUCKS = ${etbuckToDollar.toFixed(4)}</span>
                   <div className="rate-formula">
                     VTI (${vtiPrice.toFixed(2)}) ÷ 107.5
                   </div>
