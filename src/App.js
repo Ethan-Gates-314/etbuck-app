@@ -73,7 +73,7 @@ function App() {
     setIsLoading(true);
     try {
       // Use Financial Modeling Prep API as primary due to CORS issues with Yahoo Finance and Polygon.io 401
-      const apiKey = process.env.REACT_APP_API_KEY; // Access API key from environment variables
+      const apiKey = "45dce6a8aa49cafd332393286f49e99f"; // Access API key from environment variables
       if (!apiKey) {
         console.error('Financial Modeling Prep API key not found in environment variables.');
         return;
