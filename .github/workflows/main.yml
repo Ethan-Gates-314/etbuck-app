@@ -1,0 +1,43 @@
+name: PR Diff to n8n (No Auth)
+
+on:
+  pull_request:
+    branches:
+      - master  # only PRs targeting this branch
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  send-pr-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate PR diff and metadata
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          PR_NUM="${{ github.event.pull_request.number }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          URL="${{ github.event.pull_request.html_url }}"
+
+          # diff file
+          git diff $BASE_SHA $HEAD_SHA > pr_diff.patch
+
+          # metadata
+          echo "PR Number: $PR_NUM" > metadata.txt
+          echo "Author: $AUTHOR" >> metadata.txt
+          echo "Base SHA: $BASE_SHA" >> metadata.txt
+          echo "Head SHA: $HEAD_SHA" >> metadata.txt
+          echo "Title: $TITLE" >> metadata.txt
+          echo "URL: $URL" >> metadata.txt
+
+      - name: Send to n8n webhook
+        run: |
+          curl -X POST \
+            -F "diff=@pr_diff.patch" \
+            -F "metadata=@metadata.txt" \
+            "https://n8n-wf-db-pg-live-001-tc7k6pkuwa-uc.a.run.app/webhook-test/abd215af-f4ff-4129-bb87-6bb412598f87"
