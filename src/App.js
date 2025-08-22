@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -28,35 +28,45 @@ function App() {
   const [particles, setParticles] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   // Removed vtiPerformance state
 
   // Use actual VTI data from CSV file
   const [vtiHistoricalData, setVtiHistoricalData] = useState([]);
   
   // Function to load VTI data from CSV
-  const loadVtiData = async () => {
+  const loadVtiData = useCallback(async () => {
     try {
       const response = await fetch('./data/vti-data.csv');
       const csvText = await response.text();
       
       // Parse CSV
-      const rows = csvText.split('\n').slice(1); // Skip header
+      const lines = csvText.split(/\r?\n/);
+      const rows = lines.slice(1); // Skip header
       const data = rows
-        .filter(row => row.trim() !== '')
+        .map(row => row.trim())
+        .filter(row => row !== '')
         .map(row => {
-          const [date, price] = row.split(',');
+          const parts = row.split(',');
+          const dateString = (parts[0] || '').trim();
+          const priceString = (parts[1] || '').trim();
+          const parsedDate = new Date(dateString);
+          const parsedPrice = parseFloat(priceString);
           return {
-            date: new Date(date),
-            price: parseFloat(price)
+            date: parsedDate,
+            price: parsedPrice
           };
         })
-        .filter(item => !isNaN(item.price));
+        .filter(item => !isNaN(item.price) && item.date.toString() !== 'Invalid Date')
+        .sort((a, b) => a.date - b.date);
       
       setVtiHistoricalData(data);
+      setErrorMessage(prev => prev && prev.includes('history') ? '' : prev);
     } catch (error) {
       console.error('Error loading VTI historical data:', error);
+      setErrorMessage('Failed to load VTI price history.');
     }
-  };
+  }, []);
 
   // Credit card data (removed Ethan)
   const creditCards = [
@@ -65,38 +75,70 @@ function App() {
     { name: 'Melanie', balance: 50, cardNumber: '4532 3456 7890 1234' }
   ];
   
-  // Real-time VTI-based conversion rate
-  const etbuckToDollar = vtiPrice / 107.5;
+  // Real-time VTI-based conversion rate (USD per 100 ETB)
+  const dollarsPer100Etbucks = useMemo(() => vtiPrice / 107.5, [vtiPrice]);
 
   // Fetch real VTI price from financial API
-  const fetchVTIPrice = async () => {
+  const priceFetchControllerRef = useRef(null);
+  const fetchVTIPrice = useCallback(async () => {
+    // Abort any in-flight request before starting a new one
+    if (priceFetchControllerRef.current) {
+      priceFetchControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    priceFetchControllerRef.current = controller;
     setIsLoading(true);
     try {
       // Use Financial Modeling Prep API as primary due to CORS issues with Yahoo Finance and Polygon.io 401
       const apiKey = "45dce6a8aa49cafd332393286f49e99f"; // Access API key from environment variables
       if (!apiKey) {
         console.error('Financial Modeling Prep API key not found in environment variables.');
+        setErrorMessage('Missing API key for price fetch.');
         return;
       }
-      const response = await fetch(`https://financialmodelingprep.com/api/v3/quote/VTI?apikey=${apiKey}`);
+      const response = await fetch(`https://financialmodelingprep.com/api/v3/quote/VTI?apikey=${apiKey}`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
       const data = await response.json();
 
-      if (data && data[0] && data[0].price) {
+      if (data && data[0] && typeof data[0].price === 'number') {
         setVtiPrice(data[0].price);
         setLastUpdated(new Date());
+        setErrorMessage('');
+        // eslint-disable-next-line no-console
         console.log(`VTI Price updated (FMP): $${data[0].price}`);
       } else {
-        throw new Error("Invalid Financial Modeling Prep response");
+        throw new Error('Invalid Financial Modeling Prep response');
       }
     } catch (error) {
-      console.error('Error fetching VTI price:', error);
+      if (error.name === 'AbortError') {
+        // Silently ignore aborted requests
+      } else {
+        console.error('Error fetching VTI price:', error);
+        setErrorMessage('Failed to fetch latest VTI price. Showing last known value.');
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Particle animation effect (surprise feature!)
+  const prefersReducedMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    []
+  );
+
   useEffect(() => {
+    if (prefersReducedMotion) {
+      return;
+    }
+
     const createParticle = () => ({
       id: Math.random(),
       x: Math.random() * window.innerWidth,
@@ -107,42 +149,55 @@ function App() {
       opacity: Math.random() * 0.5 + 0.1
     });
 
-    const interval = setInterval(() => {
-      setParticles(prev => {
-        const newParticles = prev
-          .map(particle => ({
-            ...particle,
-            y: particle.y - particle.speedY,
-            x: particle.x + particle.speedX,
-            opacity: particle.opacity * 0.998
-          }))
-          .filter(particle => particle.y > -10 && particle.opacity > 0.01);
-        
-        // Add new particles randomly
-        if (Math.random() < 0.3) {
-          newParticles.push(createParticle());
-        }
-        
-        return newParticles.slice(-50); // Limit particles
-      });
-    }, 50);
+    let lastTime = performance.now();
+    const maxParticles = 50;
+    const frameIntervalMs = 50; // ~20fps
+    let rafId = 0;
 
-    return () => clearInterval(interval);
-  }, []);
+    const tick = (now) => {
+      if (now - lastTime >= frameIntervalMs) {
+        lastTime = now;
+        setParticles(prev => {
+          const updated = prev
+            .map(particle => ({
+              ...particle,
+              y: particle.y - particle.speedY,
+              x: particle.x + particle.speedX,
+              opacity: particle.opacity * 0.998
+            }))
+            .filter(particle => particle.y > -10 && particle.opacity > 0.01);
+
+          if (Math.random() < 0.3 && updated.length < maxParticles) {
+            updated.push(createParticle());
+          }
+
+          return updated.slice(-maxParticles);
+        });
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(rafId);
+  }, [prefersReducedMotion]);
 
   // Fetch VTI price on component mount and set up periodic updates
   useEffect(() => {
     // Fetch immediately on load
     fetchVTIPrice();
-    
     // Load historical VTI data
     loadVtiData();
-    
+
     // Update every 30 seconds (to avoid hitting API rate limits)
     const interval = setInterval(fetchVTIPrice, 30000);
-    
-    return () => clearInterval(interval);
-  }, []);
+
+    return () => {
+      clearInterval(interval);
+      if (priceFetchControllerRef.current) {
+        priceFetchControllerRef.current.abort();
+      }
+    };
+  }, [fetchVTIPrice, loadVtiData]);
 
   const formatCardNumber = (number) => {
     return number.replace(/(\d{4})/g, '$1 ').trim();
@@ -168,7 +223,7 @@ function App() {
     });
   };
 
-  const chartData = {
+  const chartData = useMemo(() => ({
     labels: vtiHistoricalData.map(item => item.date.getFullYear()),
     datasets: [
       {
@@ -181,9 +236,9 @@ function App() {
         pointRadius: 0, // No points on the line
       },
     ],
-  };
+  }), [vtiHistoricalData]);
 
-  const chartOptions = {
+  const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -225,7 +280,7 @@ function App() {
         },
       },
     },
-  };
+  }), []);
 
   return (
     <div className="App">
@@ -257,6 +312,8 @@ function App() {
             <button 
               className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveTab('dashboard')}
+              aria-pressed={activeTab === 'dashboard'}
+              aria-label="Show dashboard"
             >
               <span className="nav-icon">📊</span>
               Dashboard
@@ -264,6 +321,8 @@ function App() {
             <button 
               className={`nav-button ${activeTab === 'shop' ? 'active' : ''}`}
               onClick={() => setActiveTab('shop')}
+              aria-pressed={activeTab === 'shop'}
+              aria-label="Show shop"
             >
               <span className="nav-icon">🛒</span>
               Shop
@@ -281,20 +340,21 @@ function App() {
               <div className="conversion-card">
                 <div className="conversion-header">
                   <h2 className="conversion-title">ETBUCK Exchange Rate</h2>
-                  <div className="live-indicator">
+                  <div className="live-indicator" aria-live="polite">
                     <span className="pulse-dot"></span>
                     LIVE
                     <button 
                       className="refresh-button" 
                       onClick={fetchVTIPrice}
                       disabled={isLoading}
+                      aria-label={isLoading ? 'Refreshing price' : 'Refresh price'}
                     >
                       🔄
                     </button>
                   </div>
                 </div>
                 <div className="conversion-rate">
-                  <span className="rate-amount">100 ETBUCKS = ${etbuckToDollar.toFixed(4)}</span>
+                  <span className="rate-amount">100 ETBUCKS = ${dollarsPer100Etbucks.toFixed(4)}</span>
                   <div className="rate-formula">
                     VTI (${vtiPrice.toFixed(2)}) ÷ 107.5
                   </div>
@@ -307,6 +367,11 @@ function App() {
                     <small>Last updated: {formatTime(lastUpdated)}</small>
                   </p>
                 </div>
+                {errorMessage && (
+                  <div className="error-banner" role="status" aria-live="polite">
+                    {errorMessage}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -339,7 +404,7 @@ function App() {
                       </div>
                     </div>
                     <div className="card-usd-value">
-                      ≈ ${((card.balance * etbuckToDollar)  / 100).toFixed(2)} USD
+                      ≈ ${((card.balance * dollarsPer100Etbucks) / 100).toFixed(2)} USD
                     </div>
                     <div className="card-hologram"></div>
                   </div>
