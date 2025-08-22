@@ -175,8 +175,8 @@ function App() {
         label: 'ETBucks Value',
         data: vtiHistoricalData.map(item => (item.price / 107.5)), // ETBuck value in dollars
         fill: true,
-        borderColor: 'rgb(139, 92, 246)', // Purple
-        backgroundColor: 'rgba(139, 92, 246, 0.3)',
+        borderColor: 'rgba(79, 70, 229, 1)', // Indigo 600
+        backgroundColor: 'rgba(79, 70, 229, 0.25)',
         tension: 0.4,
         pointRadius: 0, // No points on the line
       },
@@ -207,7 +207,7 @@ function App() {
           display: false, // No vertical grid lines
         },
         ticks: {
-          color: '#a1a1aa',
+          color: '#94a3b8',
         },
       },
       y: {
@@ -217,11 +217,11 @@ function App() {
           callback: function(value) {
             return '$' + value.toFixed(1); // Format as $X.Y
           },
-          color: '#a1a1aa',
+          color: '#94a3b8',
           stepSize: 0.5 // Adjust step size to 0.5 for 1.0, 1.5, 2.0, 2.5, 3.0
         },
         grid: {
-          color: 'rgba(139, 92, 246, 0.1)',
+          color: 'rgba(79, 70, 229, 0.12)',
         },
       },
     },
