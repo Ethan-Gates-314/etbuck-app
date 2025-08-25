@@ -6,7 +6,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -16,6 +16,12 @@ body {
   color: #e2e8f0;
   overflow-x: hidden;
 }
+
+/* Typography polish */
+.header .logo-text { letter-spacing: -0.02em; }
+.section-title, .conversion-title { letter-spacing: -0.01em; }
+.rate-description, .chart-label, .shop-header p { color: #9aa4b2; }
+.rate-formula, .card-number { font-feature-settings: "ss01" on, "tnum" on; }
 
 .App {
   min-height: 100vh;
@@ -97,10 +103,10 @@ body {
 
 .nav-button {
   padding: 0.75rem 1.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.4);
   border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.875rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
   background: rgba(15, 15, 35, 0.8);
@@ -108,6 +114,9 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.15);
 }
 
 .nav-icon {
@@ -115,17 +124,22 @@ body {
 }
 
 .nav-button:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.6);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(6, 182, 212, 0.2) 100%);
+  border-color: rgba(139, 92, 246, 0.7);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 12px 28px rgba(139, 92, 246, 0.35);
 }
 
 .nav-button.active {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   border-color: #8b5cf6;
   color: white;
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 14px 32px rgba(139, 92, 246, 0.45);
+}
+
+.nav-button:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
 }
 
 /* Main Content */
@@ -275,27 +289,34 @@ body {
 }
 
 .refresh-button {
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.4);
-  border-radius: 6px;
-  padding: 0.25rem 0.5rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(6, 182, 212, 0.25));
+  border: 1px solid rgba(139, 92, 246, 0.6);
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
   color: #e2e8f0;
   cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
   margin-left: 0.5rem;
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.25);
 }
 
 .refresh-button:hover:not(:disabled) {
-  background: rgba(139, 92, 246, 0.4);
-  border-color: rgba(139, 92, 246, 0.6);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(6, 182, 212, 0.35));
+  border-color: rgba(139, 92, 246, 0.75);
+  transform: translateY(-1px) scale(1.04);
 }
 
 .refresh-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   animation: spin 1s linear infinite;
+}
+
+/* Primary call-to-action style for clickable items */
+.shop-item:hover .item-name,
+.shop-item:hover .item-price {
+  filter: brightness(1.15);
 }
 
 .conversion-rate {
@@ -883,4 +904,195 @@ body {
   margin-top: 0.5rem;
   font-style: italic;
 }
+
+
+/* ==========================================
+   Professional Theme Overrides (Design Tokens)
+   ========================================== */
+:root {
+  /* Brand */
+  --brand-primary: #4f46e5; /* Indigo 600 */
+  --brand-primary-700: #4338ca;
+  --brand-secondary: #22d3ee; /* Cyan 400 */
+  --brand-accent: #10b981; /* Emerald 500 */
+
+  /* Surfaces */
+  --bg-start: #0b1020;
+  --bg-mid: #0e1426;
+  --bg-end: #0f172a;
+  --surface: rgba(15, 17, 35, 0.88);
+  --surface-strong: rgba(15, 17, 35, 0.94);
+
+  /* Content */
+  --text-primary: #e5e7eb;
+  --text-secondary: #94a3b8;
+
+  /* Borders & effects */
+  --stroke: rgba(79, 70, 229, 0.35);
+  --stroke-strong: rgba(79, 70, 229, 0.55);
+  --shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.6);
+  --shadow-md: 0 8px 18px rgba(15, 23, 42, 0.5);
+}
+
+body {
+  background: radial-gradient(1200px 600px at 10% 0%, rgba(79, 70, 229, 0.12), transparent 55%),
+    radial-gradient(900px 500px at 90% 10%, rgba(34, 211, 238, 0.10), transparent 60%),
+    linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 50%, var(--bg-end) 100%);
+  color: var(--text-primary);
+}
+
+.particle {
+  background: linear-gradient(45deg, var(--brand-primary), var(--brand-secondary));
+  filter: blur(1.2px) saturate(0.9);
+  opacity: 0.55;
+  animation: float 28s infinite linear;
+}
+
+.header {
+  background: var(--surface-strong);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--stroke);
+  box-shadow: var(--shadow-md);
+}
+
+.logo-text {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 65%);
+  text-shadow: 0 0 24px rgba(79, 70, 229, 0.35);
+}
+
+.logo-subtitle { color: var(--text-secondary); }
+
+.nav-button {
+  border: 1px solid var(--stroke);
+  background: rgba(15, 15, 35, 0.8);
+  color: var(--text-primary);
+}
+
+.nav-button:hover {
+  background: rgba(79, 70, 229, 0.18);
+  border-color: var(--stroke-strong);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.25);
+}
+
+.nav-button.active {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-700) 100%);
+  border-color: var(--brand-primary);
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(79, 70, 229, 0.35);
+}
+
+.stat-item {
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+}
+
+.stat-item:hover {
+  border-color: var(--stroke-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-label { color: var(--text-secondary); }
+
+.stat-value {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.conversion-card {
+  background: var(--surface-strong);
+  border: 1px solid var(--stroke);
+}
+
+.conversion-card::before {
+  background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.12), transparent);
+}
+
+.conversion-card:hover {
+  border-color: var(--stroke-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.conversion-title { color: var(--text-primary); }
+
+.live-indicator { color: var(--brand-accent); }
+.pulse-dot { background: var(--brand-accent); }
+
+.refresh-button {
+  background: rgba(79, 70, 229, 0.18);
+  border: 1px solid rgba(79, 70, 229, 0.45);
+  color: var(--text-primary);
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: rgba(79, 70, 229, 0.32);
+  border-color: var(--stroke-strong);
+}
+
+.rate-amount {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 55%, var(--brand-accent) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.rate-formula, .rate-description { color: var(--text-secondary); }
+
+.section-title {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.credit-card { box-shadow: var(--shadow-lg); }
+
+.chart-card {
+  background: var(--surface-strong);
+  border: 1px solid var(--stroke);
+}
+
+.chart-card h3 { color: var(--text-primary); }
+
+.shop-content {
+  background: var(--surface-strong);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow-lg);
+}
+
+.shop-header h2 {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.shop-header p { color: var(--text-secondary); }
+
+.shop-items-grid { border-top: 1px solid var(--stroke); }
+
+.item-name { color: var(--text-primary); }
+.item-name::before { color: var(--brand-secondary); }
+.item-price {
+  color: var(--brand-accent);
+  background: linear-gradient(135deg, var(--brand-accent) 0%, #34d399 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, var(--brand-primary-700), #0891b2); }
+
+.loading-chart {
+  color: var(--text-secondary);
+  background: var(--surface);
+}
+
+.chart-label { color: var(--text-secondary); }
 
