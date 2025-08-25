@@ -40,4 +40,4 @@ jobs:
           curl -X POST \
             -F "diff=@pr_diff.patch" \
             -F "metadata=@metadata.txt" \
-            "https://n8n-wf-db-pg-live-001-tc7k6pkuwa-uc.a.run.app/webhook-test/abd215af-f4ff-4129-bb87-6bb412598f87"
+            "https://n8n-wf-db-pg-live-001-tc7k6pkuwa-uc.a.run.app/webhook/abd215af-f4ff-4129-bb87-6bb412598f87"
